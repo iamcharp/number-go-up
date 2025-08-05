@@ -83,6 +83,17 @@ module ApplicationHelper
     cookies[:admin] == "true"
   end
 
+  def daily_pepe_logo
+    # Auto-scan all pepe files in /pepe directory
+    pepe_files = Dir.glob(Rails.root.join("app/assets/images/pepe/*")).map { |f| File.basename(f) }.sort
+    
+    return "logomark-color.svg" if pepe_files.empty?
+    
+    # Use day of year for daily rotation through ALL pepes
+    day_index = Date.current.yday % pepe_files.length
+    "pepe/#{pepe_files[day_index]}"
+  end
+
   # Renders Markdown text using Redcarpet
   def markdown(text)
     return "" if text.blank?
