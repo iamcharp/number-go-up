@@ -238,6 +238,14 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :tink_items, only: %i[new edit create destroy] do
+    member do
+      post :sync
+    end
+  end
+
+  get "/tink/callback", to: "tink_items#callback"
+
   namespace :webhooks do
     post "plaid"
     post "plaid_eu"

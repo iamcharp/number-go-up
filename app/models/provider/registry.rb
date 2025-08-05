@@ -22,6 +22,14 @@ class Provider::Registry
       region.to_sym == :us ? plaid_us : plaid_eu
     end
 
+    def tink
+      config = Rails.application.config.tink
+
+      return nil unless config.present?
+
+      Provider::Tink.new(config)
+    end
+
     private
       def stripe
         secret_key = ENV["STRIPE_SECRET_KEY"]
@@ -67,6 +75,7 @@ class Provider::Registry
 
         Provider::Openai.new(access_token)
       end
+
   end
 
   def initialize(concept)
