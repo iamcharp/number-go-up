@@ -18,9 +18,14 @@ class TinkAccount::Transactions::Processor
 
     Rails.logger.info "Fetched #{transactions_data.count} transactions from Tink API"
 
-    # Process each transaction
+    # Process each transaction using TinkEntry::Processor
+    # Each entry is processed individually to avoid locking up the DB
     transactions_data.each do |transaction_data|
-      process_transaction(transaction_data)
+      TinkEntry::Processor.new(
+        transaction_data,
+        tink_account: tink_account,
+        category_matcher: category_matcher
+      ).process
     end
 
     Rails.logger.info "Completed transaction sync for Tink account #{tink_account.id}"
@@ -28,69 +33,20 @@ class TinkAccount::Transactions::Processor
 
   private
 
-    def process_transaction(transaction_data)
-      Rails.logger.debug "Processing transaction: #{transaction_data['id']}"
+    def category_matcher
+      @category_matcher ||= begin
+        # Bootstrap categories if none exist
+        if account.family.categories.none?
+          account.family.categories.bootstrap!
+        end
 
-      # Extract transaction details
-      amount = extract_amount_from_tink_data(transaction_data)
-      date = Date.parse(transaction_data['date'])
-      description = transaction_data['description'] || transaction_data['originalDescription'] || 'Tink Transaction'
-      
-      # Find or create transaction
-      transaction = tink_account.account.transactions.find_or_initialize_by(
-        tink_transaction_id: transaction_data['id']
-      )
-
-      # Only update if this is a new transaction or if data has changed
-      if transaction.new_record? || transaction_needs_update?(transaction, transaction_data)
-        transaction.assign_attributes(
-          name: description,
-          amount: amount,
-          date: date,
-          currency: extract_currency_from_tink_data(transaction_data),
-          raw_payload: transaction_data.to_json
-        )
-
-        transaction.save!
-        Rails.logger.debug "Saved transaction #{transaction.id}"
-      else
-        Rails.logger.debug "Transaction #{transaction.id} unchanged, skipping"
+        # For now, return a simple matcher that doesn't match anything
+        # TODO: Implement proper category matching for Tink transactions
+        OpenStruct.new(match: -> (category) { nil })
       end
-
-    rescue => e
-      Rails.logger.error "Error processing transaction #{transaction_data['id']}: #{e.message}"
-      raise e
     end
 
-    def extract_amount_from_tink_data(transaction_data)
-      amount_info = transaction_data.dig('amount', 'value')
-      return 0 unless amount_info
-
-      unscaled_value = amount_info['unscaledValue']
-      scale = amount_info['scale'].to_i
-
-      return 0 unless unscaled_value
-
-      # Convert unscaled value and scale to decimal
-      # Tink amounts are signed (negative for debits, positive for credits)
-      BigDecimal(unscaled_value) / (10 ** scale)
-    rescue => e
-      Rails.logger.error "Error extracting transaction amount: #{e.message}, amount_info: #{amount_info}"
-      0
-    end
-
-    def extract_currency_from_tink_data(transaction_data)
-      transaction_data.dig('amount', 'currencyCode') || tink_account.currency || 'EUR'
-    end
-
-    def transaction_needs_update?(transaction, transaction_data)
-      # Check if key fields have changed
-      new_amount = extract_amount_from_tink_data(transaction_data)
-      new_description = transaction_data['description'] || transaction_data['originalDescription'] || 'Tink Transaction'
-      new_date = Date.parse(transaction_data['date'])
-
-      transaction.amount != new_amount ||
-        transaction.name != new_description ||
-        transaction.date != new_date
+    def account
+      tink_account.account
     end
 end

@@ -38,7 +38,8 @@ class TinkItemsController < ApplicationController
   end
 
   def destroy
-    # TODO: Implement Tink item deletion
+    @tink_item.destroy_later
+    redirect_to accounts_path, notice: "Tink connection scheduled for deletion"
   end
 
   def sync
@@ -81,8 +82,8 @@ class TinkItemsController < ApplicationController
       # Fetch and create real Tink accounts
       create_real_tink_accounts(tink_item)
 
-      # Start processing transactions
-      tink_item.process_accounts
+      # Start sync job to process transactions
+      tink_item.sync_later
 
       redirect_to root_path, notice: "Successfully connected to Tink! Syncing accounts and transactions..."
     rescue => e

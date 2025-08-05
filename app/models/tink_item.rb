@@ -20,7 +20,8 @@ class TinkItem < ApplicationRecord
 
   has_many :syncs, as: :syncable, dependent: :destroy
 
-  scope :active, -> { where(status: :good) }
+  scope :active, -> { where(scheduled_for_deletion: false) }
+  scope :ordered, -> { order(created_at: :desc) }
 
   def provider
     @provider ||= Provider::Registry.tink
@@ -48,6 +49,11 @@ class TinkItem < ApplicationRecord
         window_end_date: window_end_date
       )
     end
+  end
+
+  def destroy_later
+    update!(scheduled_for_deletion: true)
+    DestroyJob.perform_later(self)
   end
 
   def refresh_access_token!

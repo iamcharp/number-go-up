@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_08_05_183453) do
+ActiveRecord::Schema[7.2].define(version: 2025_08_05_222340) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -235,6 +235,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_05_183453) do
     t.boolean "excluded", default: false
     t.string "plaid_id"
     t.jsonb "locked_attributes", default: {}
+    t.string "tink_id"
     t.index "lower((name)::text)", name: "index_entries_on_lower_name"
     t.index ["account_id", "date"], name: "index_entries_on_account_id_and_date"
     t.index ["account_id"], name: "index_entries_on_account_id"
@@ -761,6 +762,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_05_183453) do
     t.text "raw_payload"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "scheduled_for_deletion", default: false, null: false
     t.index ["family_id"], name: "index_tink_items_on_family_id"
     t.index ["provider_name"], name: "index_tink_items_on_provider_name"
     t.index ["tink_user_id"], name: "index_tink_items_on_tink_user_id"
