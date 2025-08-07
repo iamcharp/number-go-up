@@ -49,15 +49,15 @@ class TinkEntry::Processor
     end
 
     def tink_id
-      tink_transaction['id']
+      tink_transaction["id"]
     end
 
     def amount
-      amount_info = tink_transaction.dig('amount', 'value')
+      amount_info = tink_transaction.dig("amount", "value")
       return 0 unless amount_info
 
-      unscaled_value = amount_info['unscaledValue']
-      scale = amount_info['scale'].to_i
+      unscaled_value = amount_info["unscaledValue"]
+      scale = amount_info["scale"].to_i
 
       return 0 unless unscaled_value
 
@@ -70,11 +70,11 @@ class TinkEntry::Processor
     end
 
     def currency
-      tink_transaction.dig('amount', 'currencyCode') || tink_account.currency || 'EUR'
+      tink_transaction.dig("amount", "currencyCode") || tink_account.currency || "EUR"
     end
 
     def date
-      date_str = tink_transaction.dig('dates', 'booked') || tink_transaction['date']
+      date_str = tink_transaction.dig("dates", "booked") || tink_transaction["date"]
       Date.parse(date_str) if date_str
     rescue => e
       Rails.logger.error "Error parsing Tink transaction date: #{e.message}, date_data: #{tink_transaction['dates']}"
@@ -82,10 +82,10 @@ class TinkEntry::Processor
     end
 
     def name
-      tink_transaction.dig('descriptions', 'display') || 
-      tink_transaction.dig('descriptions', 'original') || 
-      tink_transaction['description'] || 
-      tink_transaction['originalDescription'] || 
-      'Tink Transaction'
+      tink_transaction.dig("descriptions", "display") ||
+      tink_transaction.dig("descriptions", "original") ||
+      tink_transaction["description"] ||
+      tink_transaction["originalDescription"] ||
+      "Tink Transaction"
     end
 end

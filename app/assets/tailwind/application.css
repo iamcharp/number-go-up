@@ -173,3 +173,35 @@
     background: #a6a6a6;
   }
 }
+
+/* Hide all scrollbars while keeping scroll functionality */
+.no-scrollbar {
+  /* Firefox */
+  scrollbar-width: none;
+  /* IE and Edge */
+  -ms-overflow-style: none;
+}
+
+/* Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Apply to all main scrollable containers by default */
+.overflow-y-auto,
+.overflow-x-auto,
+.overflow-auto,
+.overflow-scroll {
+  /* Firefox */
+  scrollbar-width: none;
+  /* IE and Edge */
+  -ms-overflow-style: none;
+}
+
+/* Chrome, Safari and Opera */
+.overflow-y-auto::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-auto::-webkit-scrollbar,
+.overflow-scroll::-webkit-scrollbar {
+  display: none;
+}

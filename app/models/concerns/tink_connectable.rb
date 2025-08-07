@@ -18,10 +18,10 @@ module TinkConnectable
     raise "Tink provider not available" unless can_connect_tink?
 
     token_response = tink_provider.exchange_authorization_code(
-      authorization_code, 
+      authorization_code,
       redirect_uri: redirect_uri
     )
-    
+
     tink_item = tink_items.create!(
       name: provider_name,
       tink_user_id: token_response.user_id,
@@ -34,7 +34,7 @@ module TinkConnectable
       institution_logo_url: token_response.institution_logo_url,
       raw_payload: token_response.raw_data.to_json
     )
-    
+
     # Start initial sync
     tink_item.sync_later
     tink_item
@@ -43,7 +43,7 @@ module TinkConnectable
   def tink_connection_status
     return :unavailable unless can_connect_tink?
     return :disconnected if tink_items.empty?
-    
+
     if tink_items.any?(&:needs_update?)
       :requires_update
     else

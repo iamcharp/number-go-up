@@ -18,3 +18,9 @@ run_security_health_checks:
   class: "SecurityHealthCheckJob"
   queue: "scheduled"
   description: "Runs security health checks to detect issues with security data"
+
+sync_kraken_accounts:
+  cron: "*/15 * * * *" # Every 15 minutes
+  class: "KrakenSyncSchedulerJob"
+  queue: "scheduled"
+  description: "Schedules sync jobs for all active Kraken accounts"

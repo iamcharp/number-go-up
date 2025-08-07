@@ -7,7 +7,7 @@ class TinkAccount::Transactions::Processor
 
   def process
     Rails.logger.info "Starting transaction sync for Tink account #{tink_account.id}"
-    
+
     # Fetch transactions from Tink API
     transactions_data = tink_account.tink_item.provider.get_transactions(
       tink_account.tink_item.access_token,
@@ -42,7 +42,7 @@ class TinkAccount::Transactions::Processor
 
         # For now, return a simple matcher that doesn't match anything
         # TODO: Implement proper category matching for Tink transactions
-        OpenStruct.new(match: -> (category) { nil })
+        OpenStruct.new(match: ->(category) { nil })
       end
     end
 

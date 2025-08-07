@@ -1,3 +1,40 @@
 <%# locals: (account:, url:) %>
 
-<%= render "accounts/form", account: account, url: url %>
+<%= render "accounts/form", account: account, url: url do |form| %>
+  <%= form.fields_for :accountable do |crypto_form| %>
+    <% if params[:method] == "kraken" %>
+      <!-- Kraken Connection Form -->
+      <div class="space-y-4 mt-4 p-4 bg-surface rounded-lg border border-primary">
+        <h3 class="font-medium text-primary">Kraken API Connection</h3>
+        <p class="text-sm text-secondary">
+          To connect your Kraken account, you'll need to create an API key in your Kraken settings with 
+          <strong>Query funds</strong> and <strong>Query ledger entries</strong> permissions.
+        </p>
+        
+        <%= crypto_form.hidden_field :exchange_name, value: "Kraken" %>
+        
+        <%= crypto_form.text_field :kraken_api_key,
+              label: "Kraken API Key",
+              placeholder: "Your Kraken API Key",
+              required: true,
+              class: "font-mono text-sm",
+              autocomplete: "off" %>
+        
+        <%= crypto_form.password_field :kraken_private_key,
+              label: "Kraken Private Key",
+              placeholder: "Your Kraken Private Key",
+              required: true,
+              class: "font-mono text-sm",
+              autocomplete: "off" %>
+        
+        <div class="text-xs text-secondary">
+          <p><strong>Security note:</strong> Your API keys are encrypted and stored securely. We never store your Kraken login credentials.</p>
+          <p><strong>Required permissions:</strong> Query funds, Query ledger entries</p>
+        </div>
+      </div>
+    <% else %>
+      <!-- Manual Entry Form -->
+      <%= crypto_form.hidden_field :exchange_name, value: "Manual" %>
+    <% end %>
+  <% end %>
+<% end %>

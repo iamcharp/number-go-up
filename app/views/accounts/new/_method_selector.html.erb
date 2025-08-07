@@ -44,5 +44,20 @@
         Connect with Tink (EU Banking)
       <% end %>
     <% end %>
+
+    <%# Kraken Link - Only for Crypto accounts %>
+    <% if accountable_type == "Crypto" %>
+      <%= link_to new_crypto_path(method: "kraken", return_to: params[:return_to]),
+                  class: "text-primary flex items-center gap-4 w-full text-center focus:outline-hidden focus:bg-gray-50 border border-transparent focus:border focus:border-gray-200 px-2 hover:bg-gray-50 rounded-lg p-2",
+                  data: { turbo_frame: "_top" } do %>
+        <span class="flex w-8 h-8 shrink-0 grow-0 items-center justify-center rounded-lg bg-alpha-black-50 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">
+          <%= icon("bitcoin") %>
+        </span>
+        <div class="text-left">
+          <div class="font-medium">Connect with Kraken</div>
+          <div class="text-xs text-gray-600">Sync your Kraken account automatically</div>
+        </div>
+      <% end %>
+    <% end %>
   </div>
 <% end %>

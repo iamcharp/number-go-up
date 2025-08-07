@@ -15,7 +15,7 @@ class CreateTinkAccounts < ActiveRecord::Migration[7.2]
 
       t.timestamps
     end
-    
+
     add_index :tink_accounts, :tink_id, unique: true
     add_index :tink_accounts, :account_type
   end

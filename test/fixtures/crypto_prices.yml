@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  crypto_asset: one
+  price: 9.99
+  date: 2025-08-07
+  currency: MyString
+
+two:
+  crypto_asset: two
+  price: 9.99
+  date: 2025-08-07
+  currency: MyString

@@ -13,7 +13,7 @@ module TinkAccount::TypeMappable
         }
       when "SAVINGS"
         {
-          accountable_type: "Depository", 
+          accountable_type: "Depository",
           accountable_attributes: {},
           subtype: "savings"
         }

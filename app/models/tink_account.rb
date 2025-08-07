@@ -22,7 +22,7 @@ class TinkAccount < ApplicationRecord
     return account if account.present?
 
     mapped_type = map_account_type(account_type)
-    
+
     account_attrs = {
       family: family,
       name: name,

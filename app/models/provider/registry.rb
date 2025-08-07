@@ -3,7 +3,7 @@ class Provider::Registry
 
   Error = Class.new(StandardError)
 
-  CONCEPTS = %i[exchange_rates securities llm]
+  CONCEPTS = %i[exchange_rates securities llm crypto]
 
   validates :concept, inclusion: { in: CONCEPTS }
 
@@ -76,6 +76,14 @@ class Provider::Registry
         Provider::Openai.new(access_token)
       end
 
+      def kraken
+        api_key = ENV["KRAKEN_API_KEY"]
+        private_key = ENV["KRAKEN_PRIVATE_KEY"]
+
+        return nil unless api_key.present? && private_key.present?
+
+        Provider::Kraken.new(api_key, private_key)
+      end
   end
 
   def initialize(concept)
@@ -106,8 +114,10 @@ class Provider::Registry
         %i[synth]
       when :llm
         %i[openai]
+      when :crypto
+        %i[kraken]
       else
-        %i[synth plaid_us plaid_eu github openai]
+        %i[synth plaid_us plaid_eu github openai kraken]
       end
     end
 end

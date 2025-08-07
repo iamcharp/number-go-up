@@ -23,37 +23,37 @@ class Provider::Tink
       scope: "accounts:read,transactions:read,user:read,credentials:read",
       state: state
     }.compact
-    
+
     "https://oauth.tink.com/0.4/authorize?" + params.to_query
   end
 
   def exchange_authorization_code(code, redirect_uri: nil)
-    require 'net/http'
-    require 'uri'
-    require 'json'
+    require "net/http"
+    require "uri"
+    require "json"
 
-    uri = URI('https://api.tink.se/api/v1/oauth/token')
-    
+    uri = URI("https://api.tink.se/api/v1/oauth/token")
+
     params = {
-      'code' => code,
-      'client_id' => @client_id,
-      'client_secret' => @client_secret,
-      'grant_type' => 'authorization_code'
+      "code" => code,
+      "client_id" => @client_id,
+      "client_secret" => @client_secret,
+      "grant_type" => "authorization_code"
     }
-    
+
     response = Net::HTTP.post_form(uri, params)
-    
-    if response.code == '200'
+
+    if response.code == "200"
       token_data = JSON.parse(response.body)
-      
+
       # Get user info to extract user_id
-      user_info = get_user_info(token_data['access_token'])
-      
+      user_info = get_user_info(token_data["access_token"])
+
       OpenStruct.new(
-        access_token: token_data['access_token'],
-        refresh_token: token_data['refresh_token'],
-        user_id: user_info['user_id'] || "tink_user_#{SecureRandom.hex(8)}",
-        expires_at: Time.current + token_data['expires_in'].seconds,
+        access_token: token_data["access_token"],
+        refresh_token: token_data["refresh_token"],
+        user_id: user_info["user_id"] || "tink_user_#{SecureRandom.hex(8)}",
+        expires_at: Time.current + token_data["expires_in"].seconds,
         institution_id: "tink_bank",
         institution_name: "Tink Connected Bank",
         institution_logo_url: nil,
@@ -69,21 +69,21 @@ class Provider::Tink
   end
 
   def get_user_info(access_token)
-    require 'net/http'
-    require 'uri'
-    require 'json'
+    require "net/http"
+    require "uri"
+    require "json"
 
-    uri = URI('https://api.tink.se/api/v1/user')
-    
+    uri = URI("https://api.tink.se/api/v1/user")
+
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    
+
     request = Net::HTTP::Get.new(uri)
-    request['Authorization'] = "Bearer #{access_token}"
-    
+    request["Authorization"] = "Bearer #{access_token}"
+
     response = http.request(request)
-    
-    if response.code == '200'
+
+    if response.code == "200"
       JSON.parse(response.body)
     else
       Rails.logger.error "Tink user info failed: #{response.code} #{response.body}"
@@ -95,23 +95,23 @@ class Provider::Tink
   end
 
   def get_accounts(access_token)
-    require 'net/http'
-    require 'uri'
-    require 'json'
+    require "net/http"
+    require "uri"
+    require "json"
 
-    uri = URI('https://api.tink.se/data/v2/accounts')
-    
+    uri = URI("https://api.tink.se/data/v2/accounts")
+
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    
+
     request = Net::HTTP::Get.new(uri)
-    request['Authorization'] = "Bearer #{access_token}"
-    
+    request["Authorization"] = "Bearer #{access_token}"
+
     response = http.request(request)
-    
-    if response.code == '200'
+
+    if response.code == "200"
       data = JSON.parse(response.body)
-      data['accounts'] || []
+      data["accounts"] || []
     else
       Rails.logger.error "Tink accounts failed: #{response.code} #{response.body}"
       []
@@ -122,37 +122,37 @@ class Provider::Tink
   end
 
   def get_transactions(access_token, account_id:, from_date: nil, to_date: nil)
-    require 'net/http'
-    require 'uri'
-    require 'json'
+    require "net/http"
+    require "uri"
+    require "json"
 
     # Default date range if not provided
     from_date ||= 90.days.ago.to_date
     to_date ||= Date.current
 
-    uri = URI('https://api.tink.se/data/v2/transactions')
-    
+    uri = URI("https://api.tink.se/data/v2/transactions")
+
     # Add query parameters
     params = {
-      'accountIds' => account_id,
-      'startDate' => from_date.strftime('%Y-%m-%d'),
-      'endDate' => to_date.strftime('%Y-%m-%d')
+      "accountIds" => account_id,
+      "startDate" => from_date.strftime("%Y-%m-%d"),
+      "endDate" => to_date.strftime("%Y-%m-%d")
     }
-    
+
     uri.query = URI.encode_www_form(params)
-    
+
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    
+
     request = Net::HTTP::Get.new(uri)
-    request['Authorization'] = "Bearer #{access_token}"
-    
+    request["Authorization"] = "Bearer #{access_token}"
+
     response = http.request(request)
-    
-    if response.code == '200'
+
+    if response.code == "200"
       data = JSON.parse(response.body)
       Rails.logger.info "Fetched #{data['transactions']&.count || 0} transactions for account #{account_id}"
-      data['transactions'] || []
+      data["transactions"] || []
     else
       Rails.logger.error "Tink transactions failed: #{response.code} #{response.body}"
       []

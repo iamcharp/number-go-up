@@ -16,7 +16,7 @@ class CreateTinkItems < ActiveRecord::Migration[7.2]
 
       t.timestamps
     end
-    
+
     add_index :tink_items, :tink_user_id
     add_index :tink_items, :provider_name
   end

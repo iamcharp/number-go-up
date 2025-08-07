@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_08_05_222340) do
+ActiveRecord::Schema[7.2].define(version: 2025_08_07_165536) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -195,10 +195,34 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_05_222340) do
     t.jsonb "locked_attributes", default: {}
   end
 
+  create_table "crypto_assets", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "symbol"
+    t.string "name"
+    t.integer "decimals"
+    t.boolean "can_deposit"
+    t.boolean "can_withdraw"
+    t.string "exchange_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "crypto_prices", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "crypto_asset_id", null: false
+    t.decimal "price"
+    t.date "date"
+    t.string "currency"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["crypto_asset_id"], name: "index_crypto_prices_on_crypto_asset_id"
+  end
+
   create_table "cryptos", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.jsonb "locked_attributes", default: {}
+    t.string "kraken_api_key"
+    t.string "kraken_private_key"
+    t.string "exchange_name"
   end
 
   create_table "data_enrichments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -881,6 +905,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_05_222340) do
   add_foreign_key "budgets", "families"
   add_foreign_key "categories", "families"
   add_foreign_key "chats", "users"
+  add_foreign_key "crypto_prices", "crypto_assets"
   add_foreign_key "entries", "accounts"
   add_foreign_key "entries", "imports"
   add_foreign_key "family_exports", "families"

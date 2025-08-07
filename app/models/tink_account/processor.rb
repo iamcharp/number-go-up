@@ -53,30 +53,30 @@ class TinkAccount::Processor
 
     def map_subtype(account_type)
       case account_type&.upcase
-      when 'CHECKING'
-        'checking'
-      when 'SAVINGS'
-        'savings'
-      when 'CREDIT_CARD'
-        'credit_card'
-      when 'LOAN'
-        'loan'
-      when 'INVESTMENT'
-        'investment'
+      when "CHECKING"
+        "checking"
+      when "SAVINGS"
+        "savings"
+      when "CREDIT_CARD"
+        "credit_card"
+      when "LOAN"
+        "loan"
+      when "INVESTMENT"
+        "investment"
       else
-        'checking'
+        "checking"
       end
     end
 
     def map_accountable(account_type)
       case account_type&.upcase
-      when 'CHECKING', 'SAVINGS'
+      when "CHECKING", "SAVINGS"
         Depository.new
-      when 'CREDIT_CARD'
+      when "CREDIT_CARD"
         CreditCard.new
-      when 'LOAN'
+      when "LOAN"
         Loan.new
-      when 'INVESTMENT'
+      when "INVESTMENT"
         Investment.new
       else
         Depository.new

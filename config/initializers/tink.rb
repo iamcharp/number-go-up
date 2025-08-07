@@ -1,6 +1,6 @@
 Rails.application.configure do
   config.tink = nil
-  
+
   if ENV["TINK_CLIENT_ID"].present? && ENV["TINK_CLIENT_SECRET"].present?
     config.tink = {
       client_id: ENV["TINK_CLIENT_ID"],
