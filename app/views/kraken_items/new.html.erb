@@ -1,0 +1,75 @@
+<%= render DS::Dialog.new do |dialog| %>
+  <% dialog.with_header(title: "Connect to Kraken") %>
+  <% dialog.with_body do %>
+    <% if @error_message.present? %>
+      <%= render DS::Alert.new(message: @error_message, variant: :error) %>
+    <% end %>
+
+    <%= styled_form_with model: @kraken_item, url: kraken_items_path, method: :post, local: true, data: { turbo: false }, class: "flex flex-col gap-4 justify-between grow text-primary" do |form| %>
+      <!-- Hidden fields to prevent password manager detection -->
+      <div style="position: absolute; left: -9999px; opacity: 0;">
+        <input type="text" name="fake_username" tabindex="-1" autocomplete="username" />
+        <input type="password" name="fake_password" tabindex="-1" autocomplete="current-password" />
+      </div>
+      
+      <div class="grow space-y-4">
+        <%= form.text_field :name,
+              placeholder: "e.g., Martin's Kraken",
+              required: true,
+              label: "Connection Name" %>
+
+        <!-- API Instructions -->
+        <div class="p-4 bg-surface rounded-lg border border-primary space-y-3">
+          <h3 class="font-medium text-primary">How to get your Kraken API keys:</h3>
+          <ol class="list-decimal list-inside space-y-2 text-sm text-secondary">
+            <li>Log in to your Kraken account</li>
+            <li>Go to Settings → API</li>
+            <li>Click "Create New Key"</li>
+            <li>Enable these permissions:
+              <ul class="list-disc list-inside ml-4 mt-1">
+                <li><strong>Query funds</strong> - To read your balances</li>
+                <li><strong>Query ledger entries</strong> - To read transaction history (optional)</li>
+              </ul>
+            </li>
+            <li>Copy your API Key and Private Key below</li>
+          </ol>
+        </div>
+
+        <%= form.text_field :api_key,
+              placeholder: "Your Kraken API Key",
+              required: true,
+              label: "API Key",
+              class: "font-mono text-sm",
+              autocomplete: "off",
+              autocorrect: "off",
+              autocapitalize: "off",
+              spellcheck: "false",
+              data: { "1p-ignore": "true", "lpignore": "true", "form-type": "other" } %>
+
+        <%= form.password_field :private_key,
+              placeholder: "Your Kraken Private Key",
+              required: true,
+              label: "Private Key",
+              class: "font-mono text-sm",
+              autocomplete: "off",
+              autocorrect: "off",
+              autocapitalize: "off",
+              spellcheck: "false",
+              data: { "1p-ignore": "true", "lpignore": "true", "form-type": "other" } %>
+
+        <!-- Security Notice -->
+        <div class="text-xs text-secondary p-3 bg-alpha-black-50 rounded">
+          <p class="font-medium mb-1">🔒 Security Information:</p>
+          <ul class="list-disc list-inside space-y-1">
+            <li>Your API keys are encrypted before storage</li>
+            <li>We never store your Kraken login credentials</li>
+            <li>You can revoke API access anytime from Kraken</li>
+            <li>We only request read-only permissions</li>
+          </ul>
+        </div>
+      </div>
+
+      <%= form.submit "Connect Kraken" %>
+    <% end %>
+  <% end %>
+<% end %>

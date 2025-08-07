@@ -4,8 +4,11 @@ class Crypto < ApplicationRecord
   # Encrypted attributes for Kraken integration
   encrypts :kraken_api_key, :kraken_private_key, deterministic: false, downcase: false
   attribute :exchange_name, :string, default: "Manual"
+  
+  # Skip validation for new KrakenAccount architecture
+  attr_accessor :skip_kraken_validation
 
-  # Validations for Kraken credentials
+  # Validations for Kraken credentials (only for old architecture)
   validates :kraken_api_key, :kraken_private_key, presence: true, if: :requires_kraken_credentials?
 
   class << self
@@ -33,7 +36,7 @@ class Crypto < ApplicationRecord
 
   # Helper method for validation condition
   def requires_kraken_credentials?
-    exchange_name == "Kraken"
+    exchange_name == "Kraken" && !skip_kraken_validation
   end
 
   # Get Kraken provider instance if configured

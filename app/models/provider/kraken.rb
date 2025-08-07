@@ -24,7 +24,8 @@ class Provider::Kraken < Provider
 
   def fetch_account_balances
     with_provider_response do
-      response = private_request("Balance")
+      # Use BalanceEx to get more complete data including sub-accounts
+      response = private_request("BalanceEx")
 
       if response["error"]&.any?
         raise InvalidResponseError.new("API returned error: #{response["error"].join(", ")}")
@@ -32,15 +33,21 @@ class Provider::Kraken < Provider
 
       result = response.dig("result") || {}
 
-      result.map do |asset, balance|
-        # Skip special Kraken asset types (.B, .F, .S, .M suffixes)
-        next if asset.include?(".")
+      result.map do |asset, data|
+        balance = data["balance"].to_f
+        hold_trade = data["hold_trade"].to_f
+        
+        # Skip assets with zero balance
+        next if balance.zero?
 
+        # Normalize asset symbol (remove Kraken prefixes/suffixes and map to standard names)
+        normalized_asset = normalize_asset_symbol(asset)
+        
         Balance.new(
-          asset: normalize_asset_symbol(asset),
-          balance: balance.to_f,
-          available: balance.to_f, # Kraken Balance endpoint returns available balance
-          locked: 0.0 # Would need ExtendedBalance for hold amounts
+          asset: normalized_asset,
+          balance: balance,
+          available: balance - hold_trade, # Available = total - held in trades
+          locked: hold_trade # Amount locked in open trades/orders
         )
       end.compact
     end
@@ -287,14 +294,20 @@ class Provider::Kraken < Provider
 
     # Normalize Kraken asset symbols to standard format
     def normalize_asset_symbol(symbol)
-      case symbol
+      # Remove suffixes like .F, .S, .M, .B first
+      base_symbol = symbol.gsub(/\.[FSMB]$/, '')
+      
+      case base_symbol
       when /^XXBT$/ then "BTC"
+      when /^XBT$/ then "BTC"  # Also handle XBT directly
       when /^XETH$/ then "ETH"
+      when /^ETH$/ then "ETH"  # Also handle ETH directly  
       when /^ZUSD$/ then "USD"
       when /^ZEUR$/ then "EUR"
+      when /^XXDG$/ then "XDG" # Dogecoin
       when /^X(.+)$/ then $1
       when /^Z(.+)$/ then $1
-      else symbol
+      else base_symbol
       end
     end
 

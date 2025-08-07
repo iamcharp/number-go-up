@@ -248,6 +248,12 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :kraken_items, only: %i[new edit create update destroy] do
+    member do
+      post :sync
+    end
+  end
+
   get "/tink/callback", to: "tink_items#callback"
 
   namespace :webhooks do

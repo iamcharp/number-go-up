@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_08_07_165536) do
+ActiveRecord::Schema[7.2].define(version: 2025_08_07_201608) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -36,6 +36,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_07_165536) do
     t.jsonb "locked_attributes", default: {}
     t.string "status", default: "active"
     t.uuid "tink_account_id"
+    t.uuid "kraken_account_id"
     t.index ["accountable_id", "accountable_type"], name: "index_accounts_on_accountable_id_and_accountable_type"
     t.index ["accountable_type"], name: "index_accounts_on_accountable_type"
     t.index ["currency"], name: "index_accounts_on_currency"
@@ -44,6 +45,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_07_165536) do
     t.index ["family_id", "status"], name: "index_accounts_on_family_id_and_status"
     t.index ["family_id"], name: "index_accounts_on_family_id"
     t.index ["import_id"], name: "index_accounts_on_import_id"
+    t.index ["kraken_account_id"], name: "index_accounts_on_kraken_account_id_not_null", where: "(kraken_account_id IS NOT NULL)"
     t.index ["plaid_account_id"], name: "index_accounts_on_plaid_account_id"
     t.index ["status"], name: "index_accounts_on_status"
     t.index ["tink_account_id"], name: "index_accounts_on_tink_account_id"
@@ -438,6 +440,43 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_07_165536) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["token"], name: "index_invite_codes_on_token", unique: true
+  end
+
+  create_table "kraken_accounts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "kraken_item_id", null: false
+    t.string "kraken_id", null: false
+    t.string "name", null: false
+    t.string "asset_symbol", null: false
+    t.string "asset_name"
+    t.string "currency", default: "USD", null: false
+    t.decimal "balance", precision: 30, scale: 10, default: "0.0"
+    t.decimal "available_balance", precision: 30, scale: 10
+    t.decimal "locked_balance", precision: 30, scale: 10, default: "0.0"
+    t.decimal "usd_value", precision: 19, scale: 4, default: "0.0"
+    t.decimal "last_price", precision: 19, scale: 4
+    t.text "raw_payload"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["asset_symbol"], name: "index_kraken_accounts_on_asset_symbol"
+    t.index ["kraken_id"], name: "index_kraken_accounts_on_kraken_id", unique: true
+    t.index ["kraken_item_id", "asset_symbol"], name: "index_kraken_accounts_on_kraken_item_id_and_asset_symbol", unique: true
+    t.index ["kraken_item_id"], name: "index_kraken_accounts_on_kraken_item_id"
+  end
+
+  create_table "kraken_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "family_id", null: false
+    t.string "name", null: false
+    t.text "api_key"
+    t.text "private_key"
+    t.string "provider_name", default: "Kraken"
+    t.string "status", default: "good"
+    t.text "raw_payload"
+    t.boolean "scheduled_for_deletion", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["family_id", "provider_name"], name: "index_kraken_items_on_family_id_and_provider_name"
+    t.index ["family_id"], name: "index_kraken_items_on_family_id"
+    t.index ["status"], name: "index_kraken_items_on_status"
   end
 
   create_table "loans", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -894,6 +933,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_07_165536) do
 
   add_foreign_key "accounts", "families"
   add_foreign_key "accounts", "imports"
+  add_foreign_key "accounts", "kraken_accounts"
   add_foreign_key "accounts", "plaid_accounts"
   add_foreign_key "accounts", "tink_accounts"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -918,6 +958,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_07_165536) do
   add_foreign_key "imports", "families"
   add_foreign_key "invitations", "families"
   add_foreign_key "invitations", "users", column: "inviter_id"
+  add_foreign_key "kraken_accounts", "kraken_items"
+  add_foreign_key "kraken_items", "families"
   add_foreign_key "merchants", "families"
   add_foreign_key "messages", "chats"
   add_foreign_key "mobile_devices", "users"
